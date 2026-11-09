@@ -1,0 +1,54 @@
+{
+  "expo": {
+    "name": "Tablewise",
+    "slug": "tablewise",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "tablewise",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.tablewise",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Take a photo of a menu so its dishes can be ranked for your goals.",
+        "NSPhotoLibraryUsageDescription": "Choose a photo of a menu so its dishes can be ranked for your goals."
+      }
+    },
+    "android": {
+      "package": "com.example.tablewise",
+      "adaptiveIcon": {
+        "backgroundColor": "#0E6B58",
+        "foregroundImage": "./assets/images/android-icon-foreground.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
+    },
+    "web": {
+      "output": "single",
+      "favicon": "./assets/images/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0E6B58",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 96
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Choose a photo of a menu so its dishes can be ranked for your goals.",
+          "cameraPermission": "Take a photo of a menu so its dishes can be ranked for your goals."
+        }
+      ]
+    ],
+    "experiments": {}
+  }
+}
