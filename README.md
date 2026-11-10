@@ -9,7 +9,7 @@ Tablewise is an original app. Its name, design, copy, sample restaurants and sco
 - **Onboarding** – goal, body stats, activity, diet and allergens produce daily calorie and macro targets (Mifflin-St Jeor).
 - **Restaurants** – browse eight built-in sample menus, search by restaurant, cuisine or dish, favorite places.
 - **Dish ranking** – each dish gets a 0-100 fit score, a verdict (Great pick / Solid choice / Go easy / Skip it), the reasons, and an ordering tip. Dishes that break your diet or contain something you avoid are flagged and never recommended.
-- **Log** – log a dish and the day's remaining calories and macros update; rankings tighten as the day fills up.
+- **Log** – log a dish, or add any meal by name, and the day's remaining calories and macros update; rankings tighten as the day fills up. A seven-day chart shows how each day went.
 - **Scan** – paste or type any menu and its dishes are estimated and ranked on-device. With the AI server, photograph a menu instead.
 - **Healthify my order** – enter what you were going to order and get the smallest swaps that make it fit, with calories saved.
 - **Coach** – ask what is left in your day or what to order at a type of restaurant. With the AI server, ask anything.
