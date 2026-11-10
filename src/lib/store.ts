@@ -4,7 +4,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { CATALOG } from './catalog';
 import { dateKey } from './nutrition';
-import type { ChatMessage, LogEntry, MenuItem, Profile, Restaurant } from './types';
+import type { ChatMessage, LogEntry, MenuItem, Profile, Restaurant, UserLocation } from './types';
 
 let counter = 0;
 export const uid = () => `${Date.now().toString(36)}${(counter++).toString(36)}${Math.random().toString(36).slice(2, 6)}`;
@@ -16,9 +16,11 @@ interface State {
   saved: Restaurant[];
   favorites: string[];
   chat: ChatMessage[];
+  location: UserLocation | null;
 
+  setLocation: (l: UserLocation) => void;
   setProfile: (p: Profile) => void;
-  logItem: (restaurantName: string, item: MenuItem) => void;
+  logItem: (restaurantName: string, item: Pick<MenuItem, 'name' | 'calories' | 'protein' | 'carbs' | 'fat'>) => void;
   removeEntry: (id: string) => void;
   saveRestaurant: (r: Omit<Restaurant, 'id' | 'items' | 'savedAt'> & { items: Omit<MenuItem, 'id'>[] }) => string;
   removeRestaurant: (id: string) => void;
@@ -36,7 +38,9 @@ export const useStore = create<State>()(
       saved: [],
       favorites: [],
       chat: [],
+      location: null,
 
+      setLocation: (location) => set({ location }),
       setProfile: (profile) => set({ profile }),
       logItem: (restaurantName, item) =>
         set((s) => ({
@@ -70,7 +74,7 @@ export const useStore = create<State>()(
         })),
       addChat: (m) => set((s) => ({ chat: [...s.chat, { ...m, id: uid() }] })),
       clearChat: () => set({ chat: [] }),
-      reset: () => set({ profile: null, log: [], saved: [], favorites: [], chat: [] }),
+      reset: () => set({ profile: null, log: [], saved: [], favorites: [], chat: [], location: null }),
     }),
     { name: 'tablewise-v1', storage: createJSONStorage(() => AsyncStorage) },
   ),

@@ -41,7 +41,14 @@ export type AiItem = Omit<MenuItem, 'id'>;
 export interface AiMenu {
   name: string;
   cuisine: string;
+  menuSource: 'official' | 'third_party' | 'memory' | 'photo' | 'none';
+  sourceUrl: string;
   items: AiItem[];
+}
+
+export interface MenuContext {
+  name: string;
+  items: Pick<MenuItem, 'name' | 'category' | 'calories' | 'protein' | 'carbs' | 'fat'>[];
 }
 
 export const lookupRestaurant = (name: string, location: string) =>
@@ -53,5 +60,5 @@ export const scanMenu = (imageBase64: string, mediaType: string) =>
 export const healthifyAi = (order: string, user: UserContext) =>
   post<{ swaps: Swap[]; tip: string }>('/api/healthify', { order, user });
 
-export const chatAi = (messages: Pick<ChatMessage, 'role' | 'text'>[], user: UserContext) =>
-  post<{ reply: string }>('/api/chat', { messages, user });
+export const chatAi = (messages: Pick<ChatMessage, 'role' | 'text'>[], user: UserContext, menu?: MenuContext) =>
+  post<{ reply: string }>('/api/chat', { messages, user, menu });

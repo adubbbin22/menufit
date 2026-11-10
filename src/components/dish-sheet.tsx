@@ -80,7 +80,7 @@ export function DishSheet({
             </View>
 
             {item.tip ? <Notice icon="bulb-outline">{item.tip}</Notice> : null}
-            {estimated ? (
+            {estimated && !item.published ? (
               <Notice tone="warn" icon="alert-circle-outline">
                 Nutrition here is an estimate from the dish name, not the restaurant's published figures.
               </Notice>

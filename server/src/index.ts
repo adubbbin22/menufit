@@ -3,7 +3,8 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 
-import { Declined, chat, healthify, menuFromImage, menuFromKnowledge } from './ai.ts';
+import { Declined, chat, healthify, menuFromImage, menuFromWeb } from './ai.ts';
+import { cached } from './cache.ts';
 
 const PORT = Number(process.env.PORT ?? 8787);
 const MAX_BODY = 12 * 1024 * 1024; // room for one base64 photo
@@ -19,7 +20,8 @@ const User = z.object({
 const routes: Record<string, (body: unknown) => Promise<unknown>> = {
   '/api/restaurant': async (body) => {
     const { name, location } = z.object({ name: z.string().trim().min(2).max(80), location: z.string().trim().max(80).default('') }).parse(body);
-    return menuFromKnowledge(name, location);
+    // Menus change slowly and lookups are the expensive call, so repeat requests are served from disk.
+    return cached(`${name}|${location}`, () => menuFromWeb(name, location));
   },
   '/api/scan': async (body) => {
     const { imageBase64, mediaType } = z
@@ -32,15 +34,23 @@ const routes: Record<string, (body: unknown) => Promise<unknown>> = {
     return healthify(order, user);
   },
   '/api/chat': async (body) => {
-    const { messages, user } = z
+    const { messages, user, menu } = z
       .object({
         messages: z.array(z.object({ role: z.enum(['user', 'assistant']), text: z.string().min(1).max(4000) })).min(1).max(40),
         user: User,
+        menu: z
+          .object({
+            name: z.string().max(80),
+            items: z
+              .array(z.object({ name: z.string().max(120), category: z.string().max(40), calories: z.number(), protein: z.number(), carbs: z.number(), fat: z.number() }))
+              .max(80),
+          })
+          .optional(),
       })
       .parse(body);
     // The conversation sent to the model must start with a user turn.
     const start = messages.findIndex((m) => m.role === 'user');
-    return { reply: await chat(messages.slice(start), user) };
+    return { reply: await chat(messages.slice(start), user, menu) };
   },
 };
 

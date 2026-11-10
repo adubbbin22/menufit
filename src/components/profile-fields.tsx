@@ -59,7 +59,8 @@ const ALLERGENS: { id: Allergen; label: string }[] = [
   { id: 'soy', label: 'Soy' },
 ];
 
-export function DietPicker({ diet, avoid, onChange }: { diet: Diet; avoid: Allergen[]; onChange: Change }) {
+export function DietPicker({ diet, avoid, dislikes, onChange }: { diet: Diet; avoid: Allergen[]; dislikes?: string[]; onChange: Change }) {
+  const [text, setText] = useState((dislikes ?? []).join(', '));
   const toggle = (a: Allergen) => onChange({ avoid: avoid.includes(a) ? avoid.filter((x) => x !== a) : [...avoid, a] });
   return (
     <View style={s.stack}>
@@ -75,6 +76,18 @@ export function DietPicker({ diet, avoid, onChange }: { diet: Diet; avoid: Aller
           <Chip key={a.id} label={a.label} selected={avoid.includes(a.id)} onPress={() => toggle(a.id)} />
         ))}
       </View>
+      <Sub style={{ marginTop: 8 }}>Foods you dislike</Sub>
+      <Field
+        value={text}
+        onChangeText={(t) => {
+          setText(t);
+          onChange({ dislikes: t.split(',').map((x) => x.trim()).filter((x) => x.length >= 3).slice(0, 12) });
+        }}
+        placeholder="e.g. mushrooms, olives, cilantro"
+        accessibilityLabel="Foods you dislike"
+        autoCapitalize="none"
+        maxLength={160}
+      />
     </View>
   );
 }

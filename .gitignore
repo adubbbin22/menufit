@@ -45,3 +45,6 @@ example
 # local env
 .env
 .env.local
+
+# server menu cache
+.cache/

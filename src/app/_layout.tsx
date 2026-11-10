@@ -35,6 +35,7 @@ export default function RootLayout() {
           <Stack.Protected guard={hasProfile}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="restaurant/[id]" />
+            <Stack.Screen name="ask/[id]" />
             <Stack.Screen name="healthify" options={{ presentation: 'modal' }} />
           </Stack.Protected>
           <Stack.Protected guard={!hasProfile}>

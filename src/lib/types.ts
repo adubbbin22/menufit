@@ -16,6 +16,8 @@ export interface Profile {
   activity: Activity;
   diet: Diet;
   avoid: Allergen[];
+  /** Free-text foods the user does not want, e.g. "mushrooms". */
+  dislikes?: string[];
   units: Units;
   /** Manual override of the computed targets, if the user set one. */
   customTargets?: Targets;
@@ -44,9 +46,13 @@ export interface MenuItem {
   contains: Allergen[];
   /** A concrete ordering tweak that makes this dish fit better. */
   tip?: string;
+  /** True when the numbers are the restaurant's own published figures. */
+  published?: boolean;
 }
 
 export type RestaurantSource = 'sample' | 'ai' | 'scan' | 'text';
+/** How far the menu and its nutrition numbers can be trusted. */
+export type Confidence = 'high' | 'medium' | 'low';
 
 export interface Restaurant {
   id: string;
@@ -55,6 +61,11 @@ export interface Restaurant {
   emoji: string;
   blurb?: string;
   source: RestaurantSource;
+  confidence?: Confidence;
+  /** Where the menu came from, shown to the user. */
+  sourceNote?: string;
+  sourceUrl?: string;
+  address?: string;
   items: MenuItem[];
   savedAt?: number;
 }
@@ -92,4 +103,30 @@ export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   text: string;
+}
+
+export interface Place {
+  id: string;
+  name: string;
+  cuisine: string;
+  emoji: string;
+  lat: number;
+  lon: number;
+  distanceM: number;
+  address?: string;
+}
+
+export interface UserLocation {
+  lat: number;
+  lon: number;
+  label: string;
+}
+
+/** A complete order built from one or more menu items. */
+export interface Meal {
+  id: string;
+  items: MenuItem[];
+  totals: Targets;
+  fit: Fit;
+  howToOrder: string[];
 }

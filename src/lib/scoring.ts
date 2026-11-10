@@ -56,6 +56,13 @@ export function scoreItem(
   for (const a of profile.avoid) {
     if (item.contains.includes(a)) conflicts.push(`Contains ${ALLERGEN_LABEL[a]}`);
   }
+  const text = `${item.name} ${item.description ?? ''}`.toLowerCase();
+  for (const d of profile.dislikes ?? []) {
+    const word = d.trim().toLowerCase();
+    // Match the word and its simple plural/singular so "mushrooms" catches "mushroom".
+    const stem = word.replace(/e?s$/, '');
+    if (stem.length >= 3 && text.includes(stem)) conflicts.push(`Has ${word}, which you dislike`);
+  }
   if (conflicts.length) {
     return { score: 0, verdict: 'skip', conflict: true, reasons: conflicts };
   }

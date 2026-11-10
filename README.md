@@ -6,16 +6,24 @@ Tablewise is an original app. Its name, design, copy, sample restaurants and sco
 
 ## What it does
 
-- **Onboarding** – goal, body stats, activity, diet and allergens produce daily calorie and macro targets (Mifflin-St Jeor).
-- **Restaurants** – browse eight built-in sample menus, search by restaurant, cuisine or dish, favorite places.
-- **Dish ranking** – each dish gets a 0-100 fit score, a verdict (Great pick / Solid choice / Go easy / Skip it), the reasons, and an ordering tip. Dishes that break your diet or contain something you avoid are flagged and never recommended.
-- **Log** – log a dish, or add any meal by name, and the day's remaining calories and macros update; rankings tighten as the day fills up. A seven-day chart shows how each day went.
-- **Scan** – paste or type any menu and its dishes are estimated and ranked on-device. With the AI server, photograph a menu instead.
-- **Healthify my order** – enter what you were going to order and get the smallest swaps that make it fit, with calories saved.
-- **Coach** – ask what is left in your day or what to order at a type of restaurant. With the AI server, ask anything.
+- **Onboarding** – goal, body stats, activity, diet, allergens and disliked foods produce daily calorie and macro targets (Mifflin-St Jeor).
+- **Restaurants near you** – uses your location (or a city you type) to list real nearby restaurants from OpenStreetMap, with distance.
+- **Real menus** – with the AI server, tapping a restaurant searches the web for its actual menu, uses published nutrition where the restaurant provides it and estimates the rest. Results are cached on the server.
+- **Confidence meter** – every menu shows where it came from and how far to trust the numbers.
+- **Your best orders** – the top three complete orders at each restaurant (a main, plus a side when it helps), with how to order them.
+- **Dish ranking** – every dish gets a 0-100 fit score, a verdict, the reasons and an ordering tip. Dishes that break your diet, contain an allergen you avoid, or include a food you dislike are flagged and never recommended.
+- **Build your own order** – tick dishes to see combined calories and macros, then log the lot or send it to Healthify.
+- **Healthify** – the smallest swaps that make an order fit, with calories saved.
+- **Ask about this menu** – a chat that knows the menu you are looking at; plus a general Coach tab.
+- **Scan** – photograph a menu (AI server) or paste/type it (works offline).
+- **Log** – log dishes or add any meal by name; a seven-day chart shows how each day went.
 - **Profile** – edit everything, set a custom calorie target, erase all data.
 
 All user data stays on the device (AsyncStorage). There are no accounts and no subscription/paywall.
+
+### What needs the AI server
+
+Nearby restaurants, demo menus, pasted menus, ranking, best orders, the order builder, rule-based swaps and built-in coaching all work without it. Fetching a real restaurant's menu, reading a menu photo, AI swaps and open-ended chat need the server and an Anthropic API key.
 
 ## Run it
 
@@ -31,7 +39,7 @@ Scan the QR code with Expo Go, or press `i` / `a` for a simulator. For store bui
 
 ## Optional AI server
 
-Without a server the app runs entirely on its built-in engine. The server in `server/` adds restaurant lookup by name, menu photo scanning, AI swaps and the open-ended coach. It keeps the API key off the device.
+The server in `server/` finds real menus with web search, reads menu photos, and powers AI swaps and chat. It keeps the API key off the device and caches menus in `server/.cache/`.
 
 ```bash
 cd server && npm install
@@ -71,4 +79,6 @@ tests/            unit tests for the engine
 
 ## Accuracy
 
-Sample-menu figures are typical values for each kind of dish. Pasted menus are estimated from dish names by keyword, and AI results are model estimates; both are labelled as estimates in the app. Allergen flags are best-effort. This is general guidance, not medical advice.
+The demo restaurants are invented, with typical values for each kind of dish. Pasted menus are estimated from dish names by keyword. AI-fetched menus use the restaurant's published nutrition when it exists and model estimates otherwise, and can be out of date or wrong; the confidence meter says which.
+
+Nearby places come from the public OpenStreetMap services (Overpass, with Nominatim as fallback), which are rate-limited and meant for light use. For a real launch, set `EXPO_PUBLIC_OVERPASS_URLS` / `EXPO_PUBLIC_NOMINATIM_URL` to your own instances or swap in a commercial places API. Allergen flags are best-effort. This is general guidance, not medical advice.

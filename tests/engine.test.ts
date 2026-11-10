@@ -111,3 +111,71 @@ test('day totals and remaining', () => {
   ]);
   assert.deepEqual(remaining({ calories: 2000, protein: 150, carbs: 200, fat: 60 }, eaten), { calories: 1200, protein: 100, carbs: 130, fat: 30 });
 });
+
+import { rateAiMenu } from '../src/lib/confidence';
+import { localMenuReply } from '../src/lib/coach';
+import { buildMeals } from '../src/lib/meals';
+import { distanceM, formatDistance, parsePlaces } from '../src/lib/places';
+
+test('disliked foods are conflicts, including plural forms', () => {
+  const t = computeTargets(base);
+  const risotto = { ...CATALOG[0].items[0], name: 'Mushroom Risotto', contains: [] as [] };
+  const fit = scoreItem(risotto, { ...base, dislikes: ['mushrooms'] }, t);
+  assert.equal(fit.conflict, true);
+  assert.match(fit.reasons[0], /mushrooms/);
+  assert.equal(scoreItem(risotto, { ...base, dislikes: ['olives'] }, t).conflict, false);
+});
+
+test('meal builder returns distinct, conflict-free orders ranked by fit', () => {
+  const t = computeTargets(base);
+  const ember = CATALOG.find((r) => r.id === 'ember')!;
+  const meals = buildMeals(ember.items, { ...base, avoid: ['dairy'] }, t);
+  assert.equal(meals.length, 3);
+  assert.ok(meals[0].fit.score >= meals[1].fit.score && meals[1].fit.score >= meals[2].fit.score);
+  const mains = meals.map((m) => m.items[0].id);
+  assert.equal(new Set(mains).size, 3);
+  for (const m of meals) {
+    assert.ok(m.items.every((i) => !i.contains.includes('dairy')));
+    assert.ok(m.items.every((i) => !/Drinks|Desserts/.test(i.category)));
+    assert.equal(m.totals.calories, m.items.reduce((n, i) => n + i.calories, 0));
+    assert.ok(m.howToOrder.length >= 1);
+  }
+});
+
+test('nearby places are parsed, de-duplicated and sorted by distance', () => {
+  const places = parsePlaces(
+    [
+      { type: 'node', id: 1, lat: 40.742, lon: -73.99, tags: { name: 'Far Tacos', amenity: 'fast_food', cuisine: 'mexican;tex-mex' } },
+      { type: 'way', id: 2, center: { lat: 40.7412, lon: -73.9897 }, tags: { name: 'Corner Cafe', amenity: 'cafe', 'addr:housenumber': '5', 'addr:street': 'Main St' } },
+      { type: 'node', id: 3, lat: 40.75, lon: -73.99, tags: { name: 'Far Tacos', amenity: 'fast_food' } },
+      { type: 'node', id: 4, lat: 40.74, lon: -73.99, tags: { amenity: 'restaurant' } },
+    ],
+    40.7411,
+    -73.9897,
+  );
+  assert.deepEqual(places.map((p) => p.name), ['Corner Cafe', 'Far Tacos']);
+  assert.equal(places[1].id, 'node-1');
+  assert.equal(places[1].cuisine, 'Mexican');
+  assert.equal(places[1].emoji, '🌮');
+  assert.equal(places[0].address, '5 Main St');
+  assert.ok(Math.abs(distanceM(40, -74, 40, -73) - 85180) < 300);
+  assert.equal(formatDistance(1609.34, true), '1.0 mi');
+  assert.equal(formatDistance(450, false), '450 m');
+});
+
+test('confidence reflects the menu source and published numbers', () => {
+  const item = { ...CATALOG[0].items[0] };
+  const menu = (menuSource: 'official' | 'memory', published: boolean) => ({ name: 'x', cuisine: 'y', menuSource, sourceUrl: '', items: [{ ...item, published }] });
+  assert.equal(rateAiMenu(menu('official', true)).confidence, 'high');
+  assert.equal(rateAiMenu(menu('official', false)).confidence, 'medium');
+  assert.equal(rateAiMenu(menu('memory', true)).confidence, 'low');
+});
+
+test('offline menu chat answers from the ranking', () => {
+  const t = computeTargets(base);
+  const umi = CATALOG.find((r) => r.id === 'umi')!;
+  const ranked = rankItems(umi.items, base, t);
+  assert.match(localMenuReply('what has the most protein?', umi.name, ranked), /Chicken Teriyaki Bowl/);
+  assert.match(localMenuReply('what should I avoid', umi.name, ranked), /skip/i);
+  assert.match(localMenuReply('hi', umi.name, ranked), /best orders/);
+});

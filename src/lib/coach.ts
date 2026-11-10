@@ -1,5 +1,5 @@
 import { CATALOG } from './catalog';
-import { rankItems } from './scoring';
+import { rankItems, type RankedItem } from './scoring';
 import type { Profile, Targets } from './types';
 
 /**
@@ -44,4 +44,32 @@ export function localCoachReply(question: string, profile: Profile, targets: Tar
   }
 
   return 'I am running in offline mode, so I can only answer from built-in guidance: ask me what is left in your day, or what to order at a type of restaurant (burgers, Mexican, Italian, sushi, Chinese, breakfast, Mediterranean, deli). Connect the AI server for open-ended questions.';
+}
+
+/** Offline answers about one restaurant's menu, drawn from the ranking. */
+export function localMenuReply(question: string, restaurantName: string, ranked: RankedItem[]): string {
+  const q = question.toLowerCase();
+  const ok = ranked.filter((r) => !r.fit.conflict);
+  const line = (r: RankedItem) => `${r.item.name} (${r.item.calories} kcal, ${r.item.protein} g protein)`;
+  if (ok.length === 0) return `Nothing on the ${restaurantName} menu fits your diet settings.`;
+
+  if (/protein/.test(q)) {
+    const top = [...ok].sort((a, b) => b.item.protein - a.item.protein).slice(0, 3);
+    return `Highest protein at ${restaurantName}: ${top.map(line).join('; ')}.`;
+  }
+  if (/light|low.?cal|fewest|least|lowest/.test(q)) {
+    const mains = ok.filter((r) => !/drink|side|dessert|starter/i.test(r.item.category));
+    const top = [...(mains.length ? mains : ok)].sort((a, b) => a.item.calories - b.item.calories).slice(0, 3);
+    return `Lightest options at ${restaurantName}: ${top.map(line).join('; ')}.`;
+  }
+  if (/avoid|skip|worst|unhealth/.test(q)) {
+    const worst = [...ok].sort((a, b) => a.fit.score - b.fit.score).slice(0, 3);
+    return `For your goals, skip: ${worst.map((r) => `${line(r)}: ${r.fit.reasons[0].toLowerCase()}`).join('; ')}.`;
+  }
+  const named = ok.find((r) => q.includes(r.item.name.toLowerCase()));
+  if (named) {
+    return `${named.item.name} scores ${named.fit.score}/100 for you: ${named.fit.reasons.join(', ').toLowerCase()}.${named.item.tip ? ` Tip: ${named.item.tip}` : ''}`;
+  }
+  const best = ok.slice(0, 3);
+  return `Your best orders at ${restaurantName} right now: ${best.map(line).join('; ')}. Ask me for the highest protein, the lightest option, or what to avoid.`;
 }

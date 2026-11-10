@@ -46,7 +46,6 @@ export default function Today() {
     const f = kcal.trim() !== '' && est.calories > 0 ? manualKcal / est.calories : 1;
     logItem('Added manually', {
       ...est,
-      id: 'manual',
       calories: Math.round(est.calories * f),
       protein: Math.round(est.protein * f),
       carbs: Math.round(est.carbs * f),

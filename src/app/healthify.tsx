@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -13,7 +13,8 @@ import { useDay } from '@/lib/use-day';
 export default function Healthify() {
   const router = useRouter();
   const { profile, user } = useDay();
-  const [order, setOrder] = useState('');
+  const params = useLocalSearchParams<{ order?: string }>();
+  const [order, setOrder] = useState(params.order ?? '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ swaps: Swap[]; tip: string } | null>(null);

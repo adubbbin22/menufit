@@ -88,7 +88,7 @@ export default function ProfileScreen() {
       </Card>
       <Card>
         <H2>Food preferences</H2>
-        <DietPicker diet={draft.diet} avoid={draft.avoid} onChange={change} />
+        <DietPicker diet={draft.diet} avoid={draft.avoid} dislikes={draft.dislikes} onChange={change} />
       </Card>
 
       {error ? <Sub style={{ color: colors.danger }}>{error}</Sub> : null}

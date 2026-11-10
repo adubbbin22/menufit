@@ -1,10 +1,11 @@
 import * as ImagePicker from 'expo-image-picker';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
 import { Button, Card, Field, H1, H2, Notice, Screen, Sub } from '@/components/ui';
 import { ApiError, aiEnabled, scanMenu } from '@/lib/api';
+import { rateAiMenu } from '@/lib/confidence';
 import { parseMenuText } from '@/lib/estimate';
 import { useStore } from '@/lib/store';
 import { colors } from '@/lib/theme';
@@ -12,7 +13,12 @@ import { colors } from '@/lib/theme';
 export default function Scan() {
   const router = useRouter();
   const saveRestaurant = useStore((s) => s.saveRestaurant);
-  const [name, setName] = useState('');
+  const params = useLocalSearchParams<{ name?: string }>();
+  const [name, setName] = useState(params.name ?? '');
+  // Arriving from a nearby place fills in its name, even if this tab was already open.
+  useEffect(() => {
+    if (params.name) setName(params.name);
+  }, [params.name]);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +50,7 @@ export default function Scan() {
         setError('No dishes could be read from that photo. Try a sharper, straight-on shot of the menu.');
         return;
       }
-      finish(saveRestaurant({ name: name.trim() || menu.name || 'Scanned menu', cuisine: menu.cuisine || 'Scanned menu', emoji: '📷', source: 'scan', items: menu.items }));
+      finish(saveRestaurant({ name: name.trim() || menu.name || 'Scanned menu', cuisine: menu.cuisine || 'Scanned menu', emoji: '📷', source: 'scan', ...rateAiMenu({ ...menu, menuSource: 'photo' }), items: menu.items }));
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Something went wrong reading that photo.');
     } finally {
@@ -59,7 +65,7 @@ export default function Scan() {
       setError('No dishes found. Put one dish per line.');
       return;
     }
-    finish(saveRestaurant({ name: name.trim() || 'Pasted menu', cuisine: 'Pasted menu', emoji: '📋', source: 'text', items }));
+    finish(saveRestaurant({ name: name.trim() || 'Pasted menu', cuisine: 'Pasted menu', emoji: '📋', source: 'text', confidence: 'low', sourceNote: 'Dishes you typed; nutrition estimated from dish names.', items }));
   };
 
   return (

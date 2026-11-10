@@ -98,7 +98,7 @@ export default function Onboarding() {
           <>
             <H1>Food preferences</H1>
             <Sub>Dishes that break these are flagged and never recommended.</Sub>
-            <DietPicker diet={draft.diet} avoid={draft.avoid} onChange={change} />
+            <DietPicker diet={draft.diet} avoid={draft.avoid} dislikes={draft.dislikes} onChange={change} />
           </>
         )}
         {id === 'plan' && (
